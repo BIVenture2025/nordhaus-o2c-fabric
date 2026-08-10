@@ -7,7 +7,7 @@ through a **Direct Lake semantic model**, an **ontology** and a **Power BI repor
 Everything here is free to reuse. The data is invented; the architecture and the modelling decisions
 are not.
 
-**📘 [Start with the guided walkthrough →](docs/guide.html)** — plain-English, nine steps, about
+**📘 [Start with the guided walkthrough →](https://biventure2025.github.io/nordhaus-o2c-fabric/docs/guide.html)** — plain-English, nine steps, about
 twenty hours. No prior Fabric experience assumed.
 
 ![The Executive Summary page](docs/img/report.png)
@@ -65,7 +65,7 @@ and choose **Start trial** — 60 days of full Fabric capacity at no cost.
 9. Build the report in Power BI Desktop, live-connected
 ```
 
-Full detail, with screenshots and every trap, is in **[the walkthrough](docs/guide.html)**.
+Full detail, with screenshots and every trap, is in **[the walkthrough](https://biventure2025.github.io/nordhaus-o2c-fabric/docs/guide.html)**.
 
 ## The finding worth stealing
 
