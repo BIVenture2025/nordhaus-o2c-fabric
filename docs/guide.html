@@ -113,9 +113,11 @@ footer{border-top:1px solid var(--line);padding-top:26px;margin-top:56px;font-si
  <div class="prog"><div class="progbar"><div class="progfill"></div></div>
   <div class="progtxt">0 of 9 steps done</div></div>
  <nav class="nav">
+  <div class="grp">The project</div>
+  <a href="#top">Overview</a><a href="#why">Why it matters</a>
+  <a href="#built">What gets built</a><a href="#worth">What it's worth</a>
   <div class="grp">Before you start</div>
-  <a href="#top">What you'll build</a><a href="#need">What you need</a>
-  <a href="#idea">The idea, in plain English</a><a href="#files">Get the files</a>
+  <a href="#need">What you need</a><a href="#files">Get the files</a>
   <div class="grp">The build</div><a href="#s1">1. Set up your workspace</a><a href="#s2">2. Create the pretend SAP system</a><a href="#s3">3. Bring the data into the lakehouse</a><a href="#s4">4. Clean the data up</a><a href="#s5">5. Build the business model</a><a href="#s6">6. Create the reporting model</a><a href="#s7">7. Add the ontology</a><a href="#s8">8. Build the report</a><a href="#s9">9. Export everything before the trial ends</a>
   <div class="grp">Reference</div><a href="#traps">Every trap</a><a href="#limits">What it doesn't do</a>
  </nav>
@@ -137,6 +139,56 @@ footer{border-top:1px solid var(--line);padding-top:26px;margin-top:56px;font-si
  </div>
 </div>
 
+<figure><img src="img/o2c/report.png" alt="The finished report. Every figure on it traces back to a single order line in the source system." loading="lazy"><figcaption>The finished report. Every figure on it traces back to a single order line in the source system.</figcaption></figure>
+
+<section id="why"><h2>Why anyone builds this</h2>
+<p class="sub">Order to cash is everything between a customer placing an order and the money landing
+in the bank. In most companies four different teams own four parts of it.</p>
+<table><thead><tr><th style="width:22%">Who</th><th>What they can see</th></tr></thead><tbody>
+<tr><td><b>Sales</b></td><td>The order was taken</td></tr>
+<tr><td><b>Logistics</b></td><td>The goods were shipped</td></tr>
+<tr><td><b>Finance</b></td><td>The invoice was raised</td></tr>
+<tr><td><b>Credit</b></td><td>The payment arrived, eventually</td></tr>
+</tbody></table>
+<p>Each lives in a different system with its own definition of the same word, so
+<b>almost nobody can follow one order all the way through</b> — and the questions worth asking sit
+precisely in the gaps between those four boxes:</p>
+<ul>
+<li>Why does one region get paid twenty days later than everywhere else?</li>
+<li>Is the factory late, or was the delivery promise never achievable?</li>
+<li>How much of what we call "money owed" is actually collectable?</li>
+</ul>
+<div class="why"><b>What you end up with.</b> A system where any one of 16,175 order lines can be traced from order to delivery to invoice to the payment that settled it - 19,578 complete journeys - and where a number on a chart can always be walked back to the transaction that produced it.</div>
+</section>
+
+<section id="built"><h2>What gets built</h2>
+<p class="sub">Seven Fabric components, in four plain moves. Nothing is included just to say it was used.</p>
+<table><thead><tr><th style="width:15%">Move</th><th style="width:32%">What it does</th><th>Components</th></tr></thead><tbody>
+<tr><td><b>1. Copy</b></td><td>Take the data out of the source untouched, so reporting never slows the business down</td><td>SQL Database · Mirroring · Lakehouse (Bronze)</td></tr>
+<tr><td><b>2. Clean</b></td><td>Translate it - dates that were text become dates, codes become names</td><td>PySpark notebook (Silver)</td></tr>
+<tr><td><b>3. Model</b></td><td>Reshape so one order line sits at the centre and everything else describes it</td><td>PySpark notebook (Gold) · Dataflow Gen2</td></tr>
+<tr><td><b>4. Serve</b></td><td>Publish once, so every report and every person uses the same definitions</td><td>Semantic model · Ontology · Power BI report</td></tr>
+</tbody></table>
+<figure><img src="img/o2c/workspace.png" alt="Everything that exists at the end, in one Fabric workspace." loading="lazy"><figcaption>Everything that exists at the end, in one Fabric workspace.</figcaption></figure>
+<div class="note"><b>The constraint that shaped the whole design:</b> an ontology can only bind to data through a <b>Direct Lake</b> semantic model. That one fact fixed the storage mode, forced a strict contract on the Gold layer - no Decimal types, no unusual column names - and set the build order for everything downstream.</div>
+</section>
+
+<section id="worth"><h2>What it's worth</h2>
+<p class="sub">Three things that only became visible once the whole chain sat in one place.</p>
+<h3>The same question, two honest answers</h3>
+<p>Delivery performance is reported <b>twice</b> - against the date the customer asked for
+(<b>61.3%</b>) and against the date the business confirmed internally (<b>5.4%</b>).</p>
+<div class="win">Both are correct. Publishing only the flattering one hides a modelling choice worth <b>fifty percentage points</b> - and it is exactly the number that ends up quoted in a board pack. The report shows both, with the reason written on the page.</div>
+<h3>2.29m of receivables that do not exist</h3>
+<p>Adding up euros, dollars and Singapore dollars without converting overstates money owed by
+<b>6.3%</b>. The fix isn't clever - it's handling currency once, in one place, rather than separately
+in every report.</p>
+<h3>77.7 days from order to cash</h3>
+<p>Broken into its stages, so the slow step is identified rather than assumed. That decomposition is
+only possible because the order-line grain survives every hop.</p>
+<div class="note"><b>Where this transfers.</b> The furniture manufacturer is invented, but the pattern isn't specific to it - any multi-document process spread across systems has the same problem. Procure-to-pay, loan origination through servicing, meter-to-cash. What transfers is the method: copy faithfully, clean once, agree definitions in one place, and write the caveats where the reader can see them.</div>
+</section>
+
 <section id="need"><h2>What you need before you start</h2>
 <p class="sub">Three things. The second one surprises people.</p>
 <h3>1. A Microsoft work or school account</h3>
@@ -157,20 +209,6 @@ SQL from scratch. If you want to understand what the code does, every step has a
 <i>For the technical reader</i> section.</p>
 </section>
 
-<section id="idea"><h2>The idea, in plain English</h2>
-<p class="sub">What "order to cash" means, and why it is worth building.</p>
-<p><b>Order to cash</b> is everything that happens between a customer placing an order and the money
-landing in the bank: the order is taken, credit is checked, goods are shipped, an invoice is raised,
-and eventually someone pays it.</p>
-<p>In most large companies each of those steps is owned by a different team and measured in a
-different system. Sales knows about orders. Logistics knows about deliveries. Finance knows about
-invoices and payments. <b>Almost nobody can follow a single order all the way through.</b></p>
-<p>That matters because the interesting questions live in the gaps. Why do orders from one region get
-paid 20 days later than everywhere else? Which products are shipping late, and is it the factory or
-the promise? How much of what we call "money owed" is actually collectable?</p>
-<div class="why"><b>What you'll end up with.</b> A system where you can take any of 16,175 order lines and follow it from order to delivery to invoice to payment — and where a number on a chart can always be traced back to the transaction that caused it. The company is invented; the shape of the problem is exactly what a real one looks like.</div>
-<figure><img src="img/o2c/workspace.png" alt="Everything you will have built, in one workspace: a SQL database standing in for SAP, a pipeline, a dataflow, five notebooks, a lakehouse, a semantic model, an ontology and a report." loading="lazy"><figcaption>Everything you will have built, in one workspace: a SQL database standing in for SAP, a pipeline, a dataflow, five notebooks, a lakehouse, a semantic model, an ontology and a report.</figcaption></figure>
-</section>
 
 <section id="files"><h2>Get the files</h2>
 <p class="sub">Notebooks, the database script, the calculations, and the report — all in one repository.</p>
