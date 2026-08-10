@@ -1,0 +1,125 @@
+// Nordhaus O2C - 24 measures.
+// Paste into Power BI DAX query view, Run, then 'Update model with changes'.
+
+DEFINE
+    // ---------- volume ----------
+    MEASURE gld_fact_order_to_cash[Order Lines] =
+        COUNTROWS ( 'gld_fact_order_to_cash' )
+
+    MEASURE gld_fact_order_to_cash[Order Lines In Scope] =
+        CALCULATE (
+            COUNTROWS ( 'gld_fact_order_to_cash' ),
+            'gld_fact_order_to_cash'[IsRejected] = FALSE ()
+        )
+
+    MEASURE gld_fact_order_to_cash[Sales Orders] =
+        DISTINCTCOUNT ( 'gld_fact_order_to_cash'[SalesOrderId] )
+
+    // ---------- money, converted to EUR group currency ----------
+    MEASURE gld_fact_order_to_cash[Ordered EUR] =
+        SUM ( 'gld_fact_order_to_cash'[OrderNetValueEUR] )
+
+    MEASURE gld_fact_order_to_cash[Billed EUR] =
+        SUM ( 'gld_fact_order_to_cash'[BilledNetValueEUR] )
+
+    MEASURE gld_fact_order_to_cash[Margin EUR] =
+        SUM ( 'gld_fact_order_to_cash'[MarginEUR] )
+
+    MEASURE gld_fact_order_to_cash[Margin %] =
+        DIVIDE ( [Margin EUR], [Ordered EUR] )
+
+    // ---------- OTIF ----------
+    MEASURE gld_fact_order_to_cash[In-Full %] =
+        DIVIDE (
+            CALCULATE (
+                COUNTROWS ( 'gld_fact_order_to_cash' ),
+                'gld_fact_order_to_cash'[IsRejected] = FALSE (),
+                'gld_fact_order_to_cash'[IsInFull] = TRUE ()
+            ),
+            [Order Lines In Scope]
+        )
+
+    MEASURE gld_fact_order_to_cash[On-Time % (Requested)] =
+        DIVIDE (
+            CALCULATE (
+                COUNTROWS ( 'gld_fact_order_to_cash' ),
+                'gld_fact_order_to_cash'[IsRejected] = FALSE (),
+                'gld_fact_order_to_cash'[IsOnTime] = TRUE ()
+            ),
+            [Order Lines In Scope]
+        )
+
+    MEASURE gld_fact_order_to_cash[On-Time % (Confirmed)] =
+        DIVIDE (
+            CALCULATE (
+                COUNTROWS ( 'gld_fact_order_to_cash' ),
+                'gld_fact_order_to_cash'[IsRejected] = FALSE (),
+                'gld_fact_order_to_cash'[IsOnTimeVsConfirmed] = TRUE ()
+            ),
+            [Order Lines In Scope]
+        )
+
+    MEASURE gld_fact_order_to_cash[OTIF %] =
+        DIVIDE (
+            CALCULATE (
+                COUNTROWS ( 'gld_fact_order_to_cash' ),
+                'gld_fact_order_to_cash'[IsRejected] = FALSE (),
+                'gld_fact_order_to_cash'[IsOTIF] = TRUE ()
+            ),
+            [Order Lines In Scope]
+        )
+
+    MEASURE gld_fact_order_to_cash[Rejection Rate %] =
+        DIVIDE (
+            CALCULATE (
+                COUNTROWS ( 'gld_fact_order_to_cash' ),
+                'gld_fact_order_to_cash'[IsRejected] = TRUE ()
+            ),
+            [Order Lines]
+        )
+
+    // ---------- cycle time ----------
+    MEASURE gld_fact_order_to_cash[Avg Order to Goods Issue Days] =
+        AVERAGE ( 'gld_fact_order_to_cash'[OrderToGoodsIssueDays] )
+
+    MEASURE gld_fact_order_to_cash[Avg Goods Issue to Invoice Days] =
+        AVERAGE ( 'gld_fact_order_to_cash'[GoodsIssueToInvoiceDays] )
+
+    MEASURE gld_fact_order_to_cash[Avg Order to Cash Days] =
+        AVERAGE ( 'gld_fact_order_to_cash'[OrderToCashDays] )
+
+    MEASURE gld_fact_order_to_cash[Avg Delivery Delay Days] =
+        AVERAGE ( 'gld_fact_order_to_cash'[DeliveryDelayDays] )
+
+    // ---------- accounts receivable (LOCAL currency - see 5b.5) ----------
+    MEASURE gld_fact_accounts_receivable[Open AR (Local)] =
+        CALCULATE (
+            SUM ( 'gld_fact_accounts_receivable'[SignedAmountLocal] ),
+            'gld_fact_accounts_receivable'[IsOpen] = TRUE ()
+        )
+
+    MEASURE gld_fact_accounts_receivable[Overdue AR (Local)] =
+        CALCULATE (
+            SUM ( 'gld_fact_accounts_receivable'[SignedAmountLocal] ),
+            'gld_fact_accounts_receivable'[IsOpen] = TRUE (),
+            'gld_fact_accounts_receivable'[IsOverdue] = TRUE ()
+        )
+
+    MEASURE gld_fact_accounts_receivable[Avg Days To Pay] =
+        AVERAGE ( 'gld_fact_accounts_receivable'[DaysToPay] )
+
+    MEASURE gld_fact_accounts_receivable[Open AR Items] =
+        CALCULATE (
+            COUNTROWS ( 'gld_fact_accounts_receivable' ),
+            'gld_fact_accounts_receivable'[IsOpen] = TRUE ()
+        )
+
+    // ---------- target ----------
+    MEASURE gld_fact_sales_target[Target EUR] =
+        SUM ( 'gld_fact_sales_target'[TargetNetEUR] )
+
+    MEASURE gld_fact_sales_target[Target Attainment %] =
+        DIVIDE ( [Billed EUR], [Target EUR] )
+
+EVALUATE
+ROW ( "Check", "measures defined" )

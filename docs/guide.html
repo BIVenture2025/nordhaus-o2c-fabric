@@ -1,0 +1,388 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build a complete data platform on Microsoft Fabric — a guided walkthrough</title>
+<meta name="description" content="A plain-English, step-by-step guide to building an end-to-end order-to-cash data platform on Microsoft Fabric. No prior Fabric experience assumed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--paper:#EFEAE0;--paper2:#E5DED1;--paper3:#F7F4EE;--white:#FCFAF7;
+ --ink:#16191E;--ink2:#2A3038;--ink3:#5C6470;--slate:#5C6E7C;--slate2:#8A9AA6;
+ --verm:#D8452C;--amber:#E5A94E;--sage:#7C8B7A;--line:rgba(22,25,30,.13);
+ --line2:rgba(22,25,30,.07);--serif:"Fraunces",Palatino,Georgia,serif;
+ --sans:"Inter","Segoe UI",-apple-system,Helvetica,Arial,sans-serif;
+ --mono:"SFMono-Regular",Consolas,Menlo,monospace}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;
+ line-height:1.68;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400;letter-spacing:-.02em;line-height:1.14}
+a{color:var(--verm);text-decoration:none}a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.12em .38em;border-radius:3px}
+.shell{display:grid;grid-template-columns:268px 1fr;max-width:1340px;margin:0 auto}
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:30px 20px 40px;
+ border-right:1px solid var(--line)}
+.main{padding:44px 56px 120px;min-width:0}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.side{position:static;height:auto;
+ border-right:0;border-bottom:1px solid var(--line)}.main{padding:26px 18px 70px}}
+.brand{font-family:var(--serif);font-size:19px;line-height:1.2}
+.brand small{display:block;font-family:var(--sans);font-size:10.5px;letter-spacing:.17em;
+ text-transform:uppercase;color:var(--slate2);margin-bottom:7px}
+.prog{margin:18px 0 20px}
+.progbar{height:5px;background:var(--paper2);border-radius:3px;overflow:hidden}
+.progfill{height:100%;width:0;background:var(--verm);transition:width .35s}
+.progtxt{font-size:11.5px;color:var(--ink3);margin-top:7px}
+.nav a{display:block;padding:6px 10px;border-radius:5px;font-size:13.5px;color:var(--ink2);
+ border-left:2px solid transparent}
+.nav a:hover{background:var(--paper3);text-decoration:none}
+.nav a.on{background:var(--white);border-left-color:var(--verm);font-weight:600;color:var(--ink)}
+.nav .grp{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--slate2);
+ margin:17px 0 5px;padding-left:10px}
+.tog{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink3);margin-top:18px;
+ padding:9px 10px;background:var(--paper3);border-radius:6px;cursor:pointer;border:1px solid var(--line2)}
+.tog input{accent-color:var(--verm)}
+.hero{border-bottom:1px solid var(--line);padding-bottom:32px;margin-bottom:38px}
+.kick{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--verm);font-weight:600;
+ margin-bottom:13px}
+.hero h1{font-size:clamp(31px,4.4vw,50px);margin-bottom:15px}
+.lede{font-size:19px;color:var(--ink2);max-width:66ch}
+.facts{display:flex;flex-wrap:wrap;gap:26px;margin-top:26px}
+.fact b{display:block;font-family:var(--serif);font-size:26px;line-height:1}
+.fact span{font-size:11.5px;color:var(--ink3)}
+section{scroll-margin-top:18px;margin-bottom:50px}
+h2{font-size:31px;margin-bottom:6px}h3{font-size:20px;margin:28px 0 9px}
+.sub{color:var(--ink3);font-size:15px;margin-bottom:20px;max-width:70ch}
+p{margin-bottom:14px;max-width:72ch}
+ul,ol{margin:0 0 15px 24px}li{margin-bottom:8px;max-width:70ch}
+figure{margin:20px 0 24px}
+figure img{width:100%;border:1px solid var(--line);border-radius:9px;display:block;background:var(--white)}
+figcaption{font-size:12.5px;color:var(--ink3);margin-top:9px;font-style:italic}
+.step{background:var(--white);border:1px solid var(--line);border-radius:11px;padding:26px 30px;
+ margin-bottom:20px}
+.shead{display:flex;gap:15px;align-items:flex-start;margin-bottom:4px}
+.sno{flex:none;width:34px;height:34px;border-radius:8px;background:var(--ink);color:var(--paper);
+ font-family:var(--serif);font-size:16px;display:grid;place-items:center;margin-top:3px}
+.shead h3{margin:0;font-size:21px;flex:1}
+.chk{display:flex;gap:7px;align-items:center;font-size:12px;color:var(--ink3);cursor:pointer;
+ flex:none;padding-top:7px;user-select:none}
+.chk input{accent-color:var(--sage);width:16px;height:16px}
+.meta{font-size:11.5px;color:var(--slate2);margin:0 0 15px 49px}
+.step.done{opacity:.6}.step.done .sno{background:var(--sage)}
+.plain{font-size:16.5px;color:var(--ink2)}
+.why{background:var(--paper3);border-radius:8px;padding:13px 17px;margin:14px 0;font-size:14.5px}
+.why b{color:var(--ink)}
+.code{position:relative;margin:14px 0}
+.code pre{background:#1B1F26;color:#E8E3DA;padding:15px 17px;border-radius:8px;overflow-x:auto;
+ font-family:var(--mono);font-size:12.6px;line-height:1.62}
+.cp{position:absolute;top:7px;right:8px;background:#2E353F;color:#C8CDD4;border:0;padding:4px 10px;
+ border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--sans)}
+.cp:hover{background:#3C4552;color:#fff}.cp.ok{background:var(--sage);color:#fff}
+details{margin:14px 0;border-radius:0 7px 7px 0}
+details summary{cursor:pointer;font-weight:600;font-size:14.5px;list-style:none;display:flex;
+ gap:9px;align-items:baseline;padding:12px 17px}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸";font-size:12px;transition:transform .18s}
+details[open] summary::before{transform:rotate(90deg)}
+details .body{padding:0 17px 15px 34px;font-size:14.5px}
+.trap{border-left:3px solid var(--verm);background:#FBF0EC}
+.trap summary{color:#A8321F}
+.tech{border-left:3px solid var(--slate2);background:var(--paper3)}
+.tech summary{color:var(--slate)}
+.note{border-left:3px solid var(--slate2);background:var(--paper3);padding:13px 17px;
+ border-radius:0 7px 7px 0;margin:15px 0;font-size:14.5px}
+.warn{border-left:3px solid var(--amber);background:#FDF6E9;padding:13px 17px;
+ border-radius:0 7px 7px 0;margin:15px 0;font-size:14.5px}
+.win{border-left:3px solid var(--sage);background:#F1F4EF;padding:13px 17px;
+ border-radius:0 7px 7px 0;margin:15px 0;font-size:14.5px}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.2px}
+th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+ border-bottom:1.5px solid var(--line);padding:9px 11px 9px 0}
+td{padding:10px 11px 10px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+.dl{display:block;background:var(--ink);color:var(--paper);padding:18px 22px;border-radius:10px;
+ margin:18px 0;text-decoration:none}
+.dl:hover{text-decoration:none;background:#22272F}
+.dl b{display:block;font-family:var(--serif);font-size:20px;margin-bottom:3px;color:var(--paper)}
+.dl span{font-size:13.5px;color:#A8AEB6}
+.hideNonTrap .step > *:not(.trap):not(.shead):not(.meta){display:none}
+.hideNonTrap .nogo{display:none}
+footer{border-top:1px solid var(--line);padding-top:26px;margin-top:56px;font-size:13px;color:var(--ink3)}
+</style></head><body>
+<div class="shell">
+<aside class="side">
+ <div class="brand"><small>Guided walkthrough</small>Build a data platform on Microsoft Fabric</div>
+ <div class="prog"><div class="progbar"><div class="progfill"></div></div>
+  <div class="progtxt">0 of 9 steps done</div></div>
+ <nav class="nav">
+  <div class="grp">Before you start</div>
+  <a href="#top">What you'll build</a><a href="#need">What you need</a>
+  <a href="#idea">The idea, in plain English</a><a href="#files">Get the files</a>
+  <div class="grp">The build</div><a href="#s1">1. Set up your workspace</a><a href="#s2">2. Create the pretend SAP system</a><a href="#s3">3. Bring the data into the lakehouse</a><a href="#s4">4. Clean the data up</a><a href="#s5">5. Build the business model</a><a href="#s6">6. Create the reporting model</a><a href="#s7">7. Add the ontology</a><a href="#s8">8. Build the report</a><a href="#s9">9. Export everything before the trial ends</a>
+  <div class="grp">Reference</div><a href="#traps">Every trap</a><a href="#limits">What it doesn't do</a>
+ </nav>
+ <label class="tog"><input type="checkbox" id="trapOnly"> Show only the gotchas</label>
+</aside>
+<main class="main">
+
+<div class="hero" id="top">
+ <div class="kick">Microsoft Fabric · Guided walkthrough</div>
+ <h1>Build a complete data platform, start to finish</h1>
+ <p class="lede">Follow along and you will build a working system that tracks a customer order all the
+ way through to the cash that pays for it — the source database, the data pipeline, the business model
+ and the report. No prior Fabric experience assumed, and nothing to buy.</p>
+ <div class="facts">
+  <div class="fact"><b>~20 h</b><span>spread over a few evenings</span></div>
+  <div class="fact"><b>£0</b><span>on a free trial</span></div>
+  <div class="fact"><b>9</b><span>steps, in order</span></div>
+  <div class="fact"><b>10</b><span>traps already found for you</span></div>
+ </div>
+</div>
+
+<section id="need"><h2>What you need before you start</h2>
+<p class="sub">Three things. The second one surprises people.</p>
+<h3>1. A Microsoft work or school account</h3>
+<p>The Fabric trial <b>cannot be activated with a personal account</b> — not Gmail, not outlook.com,
+not hotmail. Microsoft requires a work or school account.</p>
+<div class="note"><b>No work account?</b> You can create one. Sign up for the free Microsoft 365 Developer Program, or register a Microsoft 365 Business trial with a domain you control. Either gives you a work-style account (<code>you@yourdomain.com</code>) that Fabric will accept. This is the most common reason people stall on step one.</div>
+<h3>2. A Fabric trial</h3>
+<p>Sign in at <b>app.fabric.microsoft.com</b>. Open the account menu in the top right and choose
+<b>Start trial</b>. You get 60 days of a full Fabric capacity at no cost, which is more than enough
+for this build.</p>
+<div class="warn"><b>The trial expires, and when it does the workspace becomes unreachable.</b> Everything inside it goes — notebooks, tables, reports. Note your expiry date now and set a reminder for three days before. Step 9 is the export, and it is not optional.</div>
+<h3>3. Power BI Desktop</h3>
+<p>Free, Windows only, from Microsoft's site. Used only at the last step.</p>
+<h3>Do I need to write code?</h3>
+<p>No. The code is provided and commented. You import it, attach it to your data, and press Run. You
+will read error messages and click through settings screens — but you will not be writing Python or
+SQL from scratch. If you want to understand what the code does, every step has a collapsible
+<i>For the technical reader</i> section.</p>
+</section>
+
+<section id="idea"><h2>The idea, in plain English</h2>
+<p class="sub">What "order to cash" means, and why it is worth building.</p>
+<p><b>Order to cash</b> is everything that happens between a customer placing an order and the money
+landing in the bank: the order is taken, credit is checked, goods are shipped, an invoice is raised,
+and eventually someone pays it.</p>
+<p>In most large companies each of those steps is owned by a different team and measured in a
+different system. Sales knows about orders. Logistics knows about deliveries. Finance knows about
+invoices and payments. <b>Almost nobody can follow a single order all the way through.</b></p>
+<p>That matters because the interesting questions live in the gaps. Why do orders from one region get
+paid 20 days later than everywhere else? Which products are shipping late, and is it the factory or
+the promise? How much of what we call "money owed" is actually collectable?</p>
+<div class="why"><b>What you'll end up with.</b> A system where you can take any of 16,175 order lines and follow it from order to delivery to invoice to payment — and where a number on a chart can always be traced back to the transaction that caused it. The company is invented; the shape of the problem is exactly what a real one looks like.</div>
+<figure><img src="img/o2c/workspace.png" alt="Everything you will have built, in one workspace: a SQL database standing in for SAP, a pipeline, a dataflow, five notebooks, a lakehouse, a semantic model, an ontology and a report." loading="lazy"><figcaption>Everything you will have built, in one workspace: a SQL database standing in for SAP, a pipeline, a dataflow, five notebooks, a lakehouse, a semantic model, an ontology and a report.</figcaption></figure>
+</section>
+
+<section id="files"><h2>Get the files</h2>
+<p class="sub">Notebooks, the database script, the calculations, and the report — all in one repository.</p>
+<a class="dl" href="https://github.com/BIVenture2025/nordhaus-o2c-fabric" target="_blank" rel="noopener">
+ <b>github.com/BIVenture2025/nordhaus-o2c-fabric ↗</b>
+ <span>Download as a ZIP, or clone it. Free and open — no sign-up needed.</span></a>
+<p>Inside you will find the SAP database script, the data generator, the three transformation
+notebooks, the DAX calculations, the report definition, and a copy of this guide.</p>
+<div class="note"><b>New to GitHub?</b> Click the green <b>Code</b> button, then <b>Download ZIP</b>. Unzip it anywhere. You do not need a GitHub account and you do not need to know what Git is.</div>
+</section>
+
+
+<section id="s1"><div class="step">
+ <div class="shead"><div class="sno">1</div><h3>Set up your workspace</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 20 min</p>
+ 
+<p class="plain">Everything you build lives in one Fabric <b>workspace</b> — think of it as a project
+folder in the cloud that holds databases, code and reports side by side.</p>
+<ol>
+<li>Sign in at <b>app.fabric.microsoft.com</b> with your work account.</li>
+<li><b>Workspaces → New workspace.</b> Name it something like <code>Nordhaus-O2C-Dev</code>.</li>
+<li>Under <b>Advanced</b>, set the licence mode to your <b>Trial</b> capacity. This is the step people
+miss — a workspace on the wrong capacity cannot create most Fabric items.</li>
+<li>Write your trial expiry date somewhere you will see it.</li>
+</ol>
+<div class="warn"><b>Set a calendar reminder for three days before the trial ends.</b> When the trial lapses the workspace stops working and everything inside it becomes unreachable — notebooks, data, reports. Export before then, not after. This is the single most common way people lose a build like this.</div>
+</div></section>
+<section id="s2"><div class="step">
+ <div class="shead"><div class="sno">2</div><h3>Create the pretend SAP system</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 2–3 h</p>
+ 
+<p class="plain">A real project starts with data already sitting in a source system. You don't have
+one, so you build a convincing stand-in: a database shaped exactly like SAP, filled with invented
+but realistic orders.</p>
+<div class="why"><b>Why bother making it look like SAP?</b> Because the hard part of a real project is never the charts — it's the source system's quirks. SAP stores dates as text, pads customer numbers with zeros, and splits paid and unpaid invoices across two different tables. If your practice data is tidy, you practise the easy version and learn nothing.</div>
+<ol>
+<li>In your workspace: <b>New item → SQL database</b>. Name it <code>SAP_S4H_Source</code>.</li>
+<li>Open the query editor and run <code>01_SAP_Source_DDL.sql</code> from the download. This creates
+about 25 empty tables with genuine SAP names — <code>VBAK</code> for order headers,
+<code>VBAP</code> for order lines, <code>BSID</code> for unpaid invoices, and so on.</li>
+<li>Import <code>04_Nordhaus_Generate_SAP_Source.ipynb</code> and run it. It invents two years of
+trading — customers, products, orders, deliveries, invoices and payments — and loads them in.</li>
+</ol>
+<div class="note"><b>What is a notebook?</b> A document that mixes explanation with runnable code. You click Run and it executes top to bottom. You do not need to write any of it — the notebooks are provided and commented. Reading them is optional; running them is not.</div><details class="tech"><summary>For the technical reader — what the generator actually does</summary><div class="body">Deliberate process pathology is built in, because a flat demo teaches nothing: ~8% of orders are credit-blocked and concentrated in one customer segment, ~12% of deliveries split, ~5% are partial, there is a Q4 demand spike with matching OTIF degradation, and one customer cohort pays structurally late. Volume is controlled by a single <code>SCALE = 0.10</code> constant. Dates are written as <code>CHAR(8)</code> DATS strings where empty is <code>'00000000'</code>, and keys carry ALPHA leading zeros.</div></details>
+</div></section>
+<section id="s3"><div class="step">
+ <div class="shead"><div class="sno">3</div><h3>Bring the data into the lakehouse</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 1–2 h</p>
+ 
+<p class="plain">Next you copy the data out of the pretend SAP system into a <b>lakehouse</b> — a
+storage area that can hold huge tables cheaply and let you query them like a database.</p>
+<div class="why"><b>Why not just report on the SAP database directly?</b> Two reasons. Reporting queries would slow the operational system down, and you want a permanent history even if the source changes. Every serious data platform copies first, transforms second.</div>
+<ol>
+<li><b>New item → Lakehouse.</b> Name it <code>OntologyDataLH</code>.</li>
+<li>Turn on <b>mirroring</b> on the SQL database. Fabric then copies every table into the lakehouse
+automatically and keeps them in step — no code required. This copy is your <b>Bronze</b> layer:
+raw, untouched, exactly as it came.</li>
+<li>Add a <b>Dataflow Gen2</b> for the bits that never lived in SAP — exchange rates and monthly sales
+targets. This is a point-and-click tool; no code.</li>
+</ol>
+<figure><img src="img/o2c/dataflow.png" alt="The Dataflow Gen2 editor. Reference data such as FX rates and sales targets is loaded here rather than in code — it is the right tool when a business user might one day need to change the values." loading="lazy"><figcaption>The Dataflow Gen2 editor. Reference data such as FX rates and sales targets is loaded here rather than in code — it is the right tool when a business user might one day need to change the values.</figcaption></figure><details class="trap"><summary>The file format dropdown quietly defaults to Binary</summary><div class="body">When you set up a copy step, the <b>File format</b> field starts as Binary and selecting Parquet can fail silently if the dropdown scrolls as you click. You get <i>“Destination must be binary when source is of binary format.”</i> The reliable tell: the <b>Mapping</b> tab only becomes clickable once Parquet is genuinely selected.</div></details>
+</div></section>
+<section id="s4"><div class="step">
+ <div class="shead"><div class="sno">4</div><h3>Clean the data up</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 3–4 h</p>
+ 
+<p class="plain">Now the translation work. SAP's conventions get turned into something a normal person
+can read, and the results are saved as a new set of tables called <b>Silver</b>.</p>
+<div class="why"><b>What actually changes here.</b> Text like <code>20260131</code> becomes a real date. <code>0000012345</code> becomes <code>12345</code>. The two separate invoice tables — one for unpaid, one for paid — become a single list with a paid/unpaid flag. And cryptic column names become <code>CustomerName</code> and <code>OrderDate</code>.</div>
+<ol>
+<li>Import <code>06_Bronze_to_Silver.ipynb</code>.</li>
+<li>Attach your lakehouse to it (see the trap below — this one catches almost everyone).</li>
+<li><b>Run all.</b> It produces 18 cleaned tables and prints a set of checks at the end.</li>
+</ol>
+<details class="trap"><summary>“No default context found” — you attached the wrong thing</summary><div class="body">A lakehouse appears <b>twice</b> in the attach list under the same name: once as the lakehouse, once as its SQL endpoint. Pick the wrong one and the notebook fails with <code>UnsupportedOperationException: No default context found</code>, even though the panel looks correct. The tell: the wrong one has no “pin as default” in its menu. Remove it, re-add the row with the <b>lighter-blue lakehouse icon</b>, accept <i>Stop current session</i>, and check a small <b>pin</b> appears next to the name. This cost time on three separate occasions during the original build.</div></details><details class="trap"><summary>The notebook won't import — 400 Bad Request</summary><div class="body">If you edit a notebook outside Fabric and re-upload it, the import can fail with a useless message. Fabric needs the file's internal text stored as a list of lines and pure ASCII throughout. Use the notebooks as downloaded and this never arises.</div></details>
+</div></section>
+<section id="s5"><div class="step">
+ <div class="shead"><div class="sno">5</div><h3>Build the business model</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 3–4 h</p>
+ 
+<p class="plain">Silver is clean but still shaped like a source system. <b>Gold</b> reshapes it into
+the form reporting tools expect: one central table of order lines, surrounded by lookup tables for
+customer, product, plant, date and so on.</p>
+<div class="why"><b>The one number that proves it worked.</b> The finished central table has exactly 16,175 rows — the same as the original SAP order-line table. If a join is wrong, this number inflates. It is the cheapest possible check that nothing was accidentally duplicated along the way.</div>
+<ol>
+<li>Import and run <code>07_Silver_to_Gold.ipynb</code>.</li>
+<li>Read the checks it prints at the end. It should finish with <code>ALL CHECKS PASSED</code>.</li>
+<li>Optionally run <code>08_Gold_Document_Lineage.ipynb</code> to add the tables that trace each order
+line all the way through to the payment that settled it.</li>
+</ol>
+<details class="trap"><summary>A validation that runs after the save is not a validation</summary><div class="body">In these notebooks the tables are written <i>before</i> the checks run, so data lands whether or not the checks pass. On the original build the output was never read and two checks were quietly failing. <b>Read the final cell's output.</b> It takes ten seconds.</div></details><details class="tech"><summary>For the technical reader — the Gold contract</summary><div class="body">Before any write, a gate rejects any <code>DecimalType</code> column (Fabric Graph returns null for Decimal) and any column name not matching <code>^[A-Za-z][A-Za-z0-9_]*$</code> (anything else triggers Delta column mapping). Money is rounded to 2dp <i>after</i> the cast to double, or IEEE-754 artefacts like <code>5189.200082400001</code> surface later in the ontology browser. Customer and material are SCD2; the fact is an accumulating snapshot at order-line grain.</div></details>
+</div></section>
+<section id="s6"><div class="step">
+ <div class="shead"><div class="sno">6</div><h3>Create the reporting model</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 2 h</p>
+ 
+<p class="plain">A <b>semantic model</b> is the layer that turns tables into business language. It
+defines how tables relate, and holds the calculations — "OTIF %", "Open receivables" — so every report
+uses the same definition instead of each analyst inventing their own.</p>
+<figure><img src="img/o2c/model.png" alt="The semantic model. Each box is a table; each line is a relationship. The large table in the middle is the order-line fact; everything around it is a lookup." loading="lazy"><figcaption>The semantic model. Each box is a table; each line is a relationship. The large table in the middle is the order-line fact; everything around it is a lookup.</figcaption></figure>
+<ol>
+<li>From the lakehouse, choose <b>New semantic model</b> and pick the 13 Gold tables.</li>
+<li>Check the relationships Fabric guessed, and correct them.</li>
+<li>Add the calculations. Paste the provided script into <b>DAX query view</b>, click Run, then
+<b>Update model with changes</b> — this adds all 24 at once rather than typing them one at a time.</li>
+<li>Set number formats: percentages as Percentage with 1 decimal, otherwise they display as
+<code>0.58</code> instead of <code>58.2%</code>.</li>
+</ol>
+<details class="trap"><summary>“Select all” ignores the search box</summary><div class="body">Filter the table list to find your 13 tables, click <b>Select all</b>, and you get all 36 — the filter is visual only. Untick Select all, then tick the tables individually.</div></details><details class="trap"><summary>A new relationship says it “needs to be recalculated”</summary><div class="body">This is <b>not</b> an error, and it confirms the relationship was created. Refresh the semantic model and the message disappears.</div></details>
+</div></section>
+<section id="s7"><div class="step">
+ <div class="shead"><div class="sno">7</div><h3>Add the ontology</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 1–2 h</p>
+ 
+<p class="plain">An <b>ontology</b> describes your business as things and relationships — a
+<i>Customer</i> <b>places</b> an <i>Order</i>, which <b>ships from</b> a <i>Plant</i> — rather than as
+tables and joins. It is the newest layer in Fabric and the most interesting one to show people.</p>
+<figure><img src="img/o2c/ontology-2.png" alt="The ontology reads as a sentence: an order line is &lt;i&gt;soldTo&lt;/i&gt; a customer, &lt;i&gt;shipsFrom&lt;/i&gt; a plant, &lt;i&gt;soldBy&lt;/i&gt; a sales organisation, &lt;i&gt;isForProduct&lt;/i&gt; a material. Compare this with the semantic model diagram above — same data, business language." loading="lazy"><figcaption>The ontology reads as a sentence: an order line is <i>soldTo</i> a customer, <i>shipsFrom</i> a plant, <i>soldBy</i> a sales organisation, <i>isForProduct</i> a material. Compare this with the semantic model diagram above — same data, business language.</figcaption></figure>
+<ol>
+<li>From the semantic model, choose <b>Generate ontology</b>.</li>
+<li>Open each entity type and <b>set its key</b>. Nothing works until every entity has one.</li>
+<li>Rename the relationships to business language. Fabric generates names like
+<code>gld_fact_order_to_cash_has_gld_dim_customer</code>; <code>soldTo</code> reads far better.</li>
+</ol>
+<figure><img src="img/o2c/ontology-1.png" alt="More of the same map — &lt;i&gt;hasOrderType&lt;/i&gt;, &lt;i&gt;soldThrough&lt;/i&gt;, &lt;i&gt;rejectedFor&lt;/i&gt;, &lt;i&gt;inDivision&lt;/i&gt;. Renaming is cosmetic but it is the screen people look at." loading="lazy"><figcaption>More of the same map — <i>hasOrderType</i>, <i>soldThrough</i>, <i>rejectedFor</i>, <i>inDivision</i>. Renaming is cosmetic but it is the screen people look at.</figcaption></figure><div class="win"><b>What works well.</b> The ontology binds live to your Gold tables, so new data appears without rebuilding anything, and relationships you already defined in the semantic model come across automatically.</div><details class="trap"><summary>Fabric Graph is not ready — plan around it</summary><div class="body">Two separate problems were found. First, ontology relationships do <b>not</b> become graph edges — edges are a different thing that must be built from a source table, and nothing tells you, so the graph just shows disconnected dots. Second, edges created by hand <b>disappeared after closing and reopening</b> the item. The graph layer was abandoned on the original build. The ontology itself is unaffected and works properly.</div></details>
+</div></section>
+<section id="s8"><div class="step">
+ <div class="shead"><div class="sno">8</div><h3>Build the report</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 3–4 h</p>
+ 
+<p class="plain">Finally, the part everyone recognises. Connect Power BI to the published semantic
+model and build the pages.</p>
+<figure><img src="img/o2c/report.png" alt="The Executive Summary page. Every number traces back through the model to a single order line in the original pretend SAP system." loading="lazy"><figcaption>The Executive Summary page. Every number traces back through the model to a single order line in the original pretend SAP system.</figcaption></figure>
+<ol>
+<li>Power BI Desktop → <b>Get data → Power BI semantic models</b> → pick yours. This is a
+<i>live</i> connection: the data stays in Fabric.</li>
+<li>Build five pages: a landing page, an executive summary, delivery performance, cash and
+receivables, and a guide page explaining how to read the report.</li>
+<li>Publish back to the workspace.</li>
+</ol>
+<div class="win"><b>The one design decision worth copying.</b> Report on-time delivery <i>twice</i> — against the date the customer asked for (61.3%) and the date the business confirmed internally (5.4%). Both are true. Showing one alone hides a choice worth fifty percentage points, and it is exactly the number someone will quote in a meeting.</div><details class="trap"><summary>Never add up a column of mixed currencies</summary><div class="body">The receivables are in euros, dollars and Singapore dollars. Adding them gives 38.6m against a true 36.4m — a 6.3% overstatement of money owed. Split by company code, and switch the table's Totals row off so the meaningless number cannot be read by accident.</div></details>
+</div></section>
+<section id="s9"><div class="step">
+ <div class="shead"><div class="sno">9</div><h3>Export everything before the trial ends</h3>
+ <label class="chk"><input type="checkbox"> done</label></div>
+ <p class="meta">about 1 h</p>
+ 
+<p class="plain">The least interesting step and the one that matters most. When the trial expires the
+workspace becomes unreachable, and only what you saved to your own computer survives.</p>
+<ol>
+<li>Screenshot every report page at full size.</li>
+<li>Screenshot the workspace item list, the dataflow editor, the model diagram and the ontology.</li>
+<li>Copy the Dataflow's M code out of the Advanced Editor into a text file — it exists nowhere else.</li>
+<li>Script the semantic model out of TMDL view and save it.</li>
+<li>Export the Gold tables to Parquet or CSV.</li>
+<li>Download the .pbix.</li>
+</ol>
+<div class="warn">On the original build this was discovered with eight days left and no export done. Do it the week you finish, not the week it expires.</div>
+</div></section>
+
+<section id="traps"><h2>Every trap, in one table</h2>
+<p class="sub">Each of these cost real time on the original build. Worth skimming before you start.</p>
+<table><thead><tr><th style="width:27%">What happens</th><th style="width:27%">What you'll see</th>
+<th>What to do</th></tr></thead><tbody><tr><td><b>Workspace on the wrong capacity</b></td><td>Most item types unavailable</td><td>Set licence mode to Trial in workspace settings</td></tr><tr><td><b>Lakehouse vs SQL endpoint</b></td><td>No default context found</td><td>Re-add the lighter-blue lakehouse icon; confirm the pin</td></tr><tr><td><b>Notebook import fails</b></td><td>400 Bad Request</td><td>Use the notebooks as downloaded; don&#x27;t re-save them elsewhere</td></tr><tr><td><b>Copy step format</b></td><td>Destination must be binary…</td><td>Confirm Parquet is set — the Mapping tab enables</td></tr><tr><td><b>Select all ignores the filter</b></td><td>36 tables instead of 13</td><td>Tick tables individually</td></tr><tr><td><b>Relationship “needs recalculating”</b></td><td>Query returns an error</td><td>Not an error — refresh the semantic model</td></tr><tr><td><b>TMDL editor is read-only</b></td><td>Apply is greyed out</td><td>Switch Viewing → Editing</td></tr><tr><td><b>Percentages show as 0.58</b></td><td>Wrong-looking numbers</td><td>Set Percentage format on each ratio measure</td></tr><tr><td><b>Ontology relationships ≠ graph edges</b></td><td>Disconnected dots</td><td>Edges are built from a source table</td></tr><tr><td><b>Graph edges vanish on reopen</b></td><td>Work lost</td><td>Unresolved — treat Fabric Graph as preview only</td></tr></tbody></table></section>
+
+<section id="limits"><h2>What this build does not do</h2>
+<p class="sub">Stated plainly, so nothing here oversells itself.</p>
+<ul>
+<li><b>The data is invented.</b> Nordhaus Group is fictional. The <i>shape</i> is realistic; no figure
+represents a real company.</li>
+<li><b>The pipeline is partial.</b> One working copy step, not the full automated framework.</li>
+<li><b>Fabric Graph was abandoned.</b> Edges did not survive being reopened.</li>
+<li><b>Five report pages of seven planned</b>, and 24 calculations of roughly 70.</li>
+<li><b>Trial capacity only.</b> Nothing here says what this would cost to run in production.</li>
+</ul>
+<div class="note">If you build this and get further than I did — particularly on the pipeline or the graph — I'd genuinely like to hear about it.</div>
+</section>
+
+<footer>
+ <p>Written by Yeong Wai Son. Synthetic data throughout; Nordhaus Group is fictional and no figure
+ represents a real company.</p>
+ <p style="margin-top:8px">Progress ticks are in-memory only and reset when you reload.</p>
+</footer>
+</main></div>
+<script>
+const boxes=[...document.querySelectorAll('.chk input')];
+const fill=document.querySelector('.progfill'),ptxt=document.querySelector('.progtxt');
+function upd(){const n=boxes.filter(b=>b.checked).length;
+ fill.style.width=(n/boxes.length*100)+'%';ptxt.textContent=n+' of '+boxes.length+' steps done';}
+boxes.forEach(b=>b.addEventListener('change',()=>{b.closest('.step').classList.toggle('done',b.checked);upd();}));
+upd();
+document.querySelectorAll('.code').forEach(c=>{const b=document.createElement('button');
+ b.className='cp';b.textContent='Copy';
+ b.onclick=()=>navigator.clipboard.writeText(c.querySelector('pre').innerText).then(()=>{
+  b.textContent='Copied';b.classList.add('ok');setTimeout(()=>{b.textContent='Copy';b.classList.remove('ok')},1400)});
+ c.appendChild(b);});
+const links=[...document.querySelectorAll('.nav a')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)
+ links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}),
+ {rootMargin:'-12% 0px -78% 0px'}).observe&&secs.forEach(s=>
+ new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)
+ links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}),
+ {rootMargin:'-12% 0px -78% 0px'}).observe(s));
+document.getElementById('trapOnly').addEventListener('change',e=>
+ document.body.classList.toggle('hideNonTrap',e.target.checked));
+</script></body></html>
